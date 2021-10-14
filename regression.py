@@ -1,48 +1,15 @@
-'''
-This script perfoms the basic process for applying a machine learning
-algorithm to a dataset using Python libraries.
+#'''
+#This script perfoms the basic process for applying a machine learning
+#algorithm to a dataset using Python libraries.
 
-The four steps are:
-   1. Download a dataset (using pandas)
-   2. Process the numeric data (using numpy)
-   3. Train and evaluate learners (using scikit-learn)
-   4. Plot and compare results (using matplotlib)
+#The four steps are:
+#   1. Download a dataset (using pandas)
+#   2. Process the numeric data (using numpy)
+#   3. Train and evaluate learners (using scikit-learn)
+#   4. Plot and compare results (using matplotlib)
 
 
-The data is downloaded from URL, which is defined below. As is normal
-for machine learning problems, the nature of the source data affects
-the entire solution. When you change URL to refer to your own data, you
-will need to review the data processing steps to ensure they remain
-correct.
-
-============
-Example Data
-============
-The example is from https://web.archive.org/web/20180322001455/http://mldata.org/repository/data/viewslug/stockvalues/
-It contains stock prices and the values of three indices for each day
-over a five year period. See the linked page for more details about
-this data set.
-
-This script uses regression learners to predict the stock price for
-the second half of this period based on the values of the indices. This
-is a naive approach, and a more robust method would use each prediction
-as an input for the next, and would predict relative rather than
-absolute values.
-'''
-
-# Remember to update the script for the new data when you change this URL
-#URL = "https://raw.githubusercontent.com/microsoft/python-sklearn-regression-cookiecutter/master/stockvalues.csv"
-URL = "H:\\Users\\admin\\Projects\\Desafios\\DesafioIBM\\Arquivos\\registros-prod.xlsx"
-
-# This is the column of the sample data to predict.
-# Try changing it to other integers between 1 and 155.
-TARGET_COLUMN = 5#32
-
-# Uncomment this call when using matplotlib to generate images
-# rather than displaying interactive UI.
 import matplotlib
-# matplotlib.use('Agg')
-
 from pandas import read_table
 import numpy as np
 import matplotlib.pyplot as plt
@@ -53,9 +20,18 @@ from sklearn import linear_model
 import statsmodels.api as sm
 import tkinter as tk 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from sklearn.neighbors import RadiusNeighborsRegressor
 
+from sklearn.svm import LinearSVR
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.datasets import make_regression
+from sklearn.svm import NuSVR
 
-
+#Home
+#URL = "H:\\Users\\admin\\Projects\\Desafios\\DesafioIBM\\Arquivos\\registros-prod.xlsx"
+#Office
+URL = "C:\\Users\\Andre.Vieira\\Downloads\\Teste\\registros-prod.xlsx"
 try:
     # [OPTIONAL] Seaborn makes plots nicer
     import seaborn
@@ -72,55 +48,11 @@ def download_data():
     # If your data is in an Excel file, install 'xlrd' and use
     # pandas.read_excel instead of read_table
     
-    frame = read_excel(URL, engine='openpyxl')
-
-    # If your data is in a private Azure blob, install 'azure-storage' and use
-    # BlockBlobService.get_blob_to_path() with read_table() or read_excel()
-    #from azure.storage.blob import BlockBlobService
-    #service = BlockBlobService(ACCOUNT_NAME, ACCOUNT_KEY)
-    #service.get_blob_to_path(container_name, blob_name, 'my_data.csv')
-    #frame = read_table('my_data.csv', ...
-
-        #frame = read_table(URL)
-        
-        # Uncomment if the file needs to be decompressed
-        #compression='gzip',
-        #compression='bz2',
-
-        # Specify the file encoding
-        # Latin-1 is common for data from US sources
-        #encoding='latin-1',
-        #encoding='utf-8',  # UTF-8 is also common
-
-        # Specify the separator in the data
-        #sep=',',            # comma separated values
-        #sep='\t',          # tab separated values
-        #sep=' ',           # space separated values
-
-        # Ignore spaces after the separator
-        #skipinitialspace=True,
-
-        # Generate row labels from each row number
-        #index_col=None,
-        #index_col=0,       # use the first column as row labels
-        #index_col=-1,      # use the last column as row labels
-
-        # Generate column headers row from each column number
-        #header=None,
-        #header=0,          # use the first line as headers
-
-        # Use manual headers and skip the first row in the file
-        #header=0,
-        #names=['col1', 'col2', ...],
-    #)
+    frame = read_excel(URL)#, engine='openpyxl')
 
     # Return the entire frame
     return frame
-
-    # Return a subset of the columns
-    #return frame[[156, 157, 158, TARGET_COLUMN]]
-
-
+   
 # =====================================================================
 
 
@@ -130,7 +62,7 @@ def get_features_and_labels(frame):
     training and testing inputs and targets.
     '''
 
-    # Replace missing values with 0.0
+    # No need to replace missing values with 0.0
     # or we can use scikit-learn to calculate missing values below
     #frame[frame.isnull()] = 0.0
 
@@ -153,13 +85,11 @@ def get_features_and_labels(frame):
 
     # Use the last column as the target value
     X, y = arr[:, :-1], arr[:, -1]
-    # To use the first column instead, change the index value
-    #X, y = arr[:, 1:], arr[:, 0]
     
     # Use 50% of the data for training, but we will test against the
     # entire set
     from sklearn.model_selection import train_test_split
-    X_train, _, y_train, _ = train_test_split(X, y, test_size=0.3)
+    X_train, _, y_train, _ = train_test_split(X, y, test_size=0.5)
     X_test, y_test = X, y
     
     # If values are missing we could impute them from the training data
@@ -191,11 +121,7 @@ def get_features_and_labels(frame):
 def evaluate_learner(X_train, X_test, y_train, y_test):
     '''
     Run multiple times with different algorithms to get an idea of the
-    relative performance of each configuration.
-
-    Returns a sequence of tuples containing:
-        (title, expected values, actual values)
-    for each learner.
+    relative performance of each configuration.    
     '''
 
     # Use a support vector machine for regression
@@ -222,17 +148,13 @@ def evaluate_learner(X_train, X_test, y_train, y_test):
     r_2 = svr.score(X_test, y_test)
     yield 'Polynomial Model ($R^2={:.3f}$)'.format(r_2), y_test, y_pred
 
-
 # =====================================================================
 
 
 def plot(results):
     '''
     Create a plot comparing multiple learners.
-
-    `results` is a list of tuples containing:
-        (title, expected values, actual values)
-    
+    `results` is a list of tuples     
     All the elements in results will be plotted.
     '''
 
@@ -299,7 +221,6 @@ def plot(results):
     # Closing the figure allows matplotlib to release the memory used.
     plt.close()
 
-
 # =====================================================================
 def gui(df, X_train, X_test, y_train, y_test):
     
@@ -318,7 +239,7 @@ def gui(df, X_train, X_test, y_train, y_test):
     label_Intercept = tk.Label(root, text=Intercept_result, justify = 'center')
     canvas1.create_window(260, 220, window=label_Intercept)
 
-    # with sklearn
+    #with sklearn
     Coefficients_result  = ('Coefficients: ', regr.coef_)
     label_Coefficients = tk.Label(root, text=Coefficients_result, justify = 'center')
     canvas1.create_window(260, 240, window=label_Coefficients)
@@ -351,7 +272,7 @@ def gui(df, X_train, X_test, y_train, y_test):
         global New_VAR_2 # 3rd input variable 
         New_VAR_2 = float(entry3.get()) 
     
-        Prediction_result  = ('Predicted PESO_BOMBOM: ', regr.predict([[New_Interest_Rate ,New_Unemployment_Rate]]))
+        Prediction_result  = ('Predicted PESO_BOMBOM: ', regr.predict([[New_PESO_CHOC , New_VAR_1, New_VAR_2]]))
         label_Prediction = tk.Label(root, text= Prediction_result, bg='orange')
         canvas1.create_window(260, 280, window=label_Prediction)
     
@@ -402,14 +323,16 @@ if __name__ == '__main__':
     X_train, X_test, y_train, y_test = get_features_and_labels(frame)
 
     # Evaluate multiple regression learners on the data
-    print("Evaluating regression learners")
+    print("Evaluating regression learners \n")
     results = list(evaluate_learner(X_train, X_test, y_train, y_test))
 
     # Display the results
-    print("Plotting the results")
+    print("Plotting the results \n")
     plot(results)
 
     #GUI for prediction
     print("Opening GUI")
+    print("\n")
+    print(newframe)
     gui(newframe, X_train, X_test, y_train, y_test)
 

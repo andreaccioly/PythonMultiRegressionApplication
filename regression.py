@@ -20,18 +20,12 @@ from sklearn import linear_model
 import statsmodels.api as sm
 import tkinter as tk 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from sklearn.neighbors import RadiusNeighborsRegressor
-
-from sklearn.svm import LinearSVR
-from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
-from sklearn.datasets import make_regression
-from sklearn.svm import NuSVR
 
 #Home
-#URL = "H:\\Users\\admin\\Projects\\Desafios\\DesafioIBM\\Arquivos\\registros-prod.xlsx"
+URL = "H:\\Users\\admin\\Projects\\Desafios\\DesafioIBM\\Arquivos\\registros-prod.xlsx"
 #Office
-URL = "C:\\Users\\Andre.Vieira\\Downloads\\Teste\\registros-prod.xlsx"
+#URL = "C:\\Users\\Andre.Vieira\\Downloads\\Teste\\registros-prod.xlsx"
 try:
     # [OPTIONAL] Seaborn makes plots nicer
     import seaborn
@@ -48,13 +42,12 @@ def download_data():
     # If your data is in an Excel file, install 'xlrd' and use
     # pandas.read_excel instead of read_table
     
-    frame = read_excel(URL)#, engine='openpyxl')
+    frame = read_excel(URL, engine='openpyxl')
 
     # Return the entire frame
     return frame
    
 # =====================================================================
-
 
 def get_features_and_labels(frame):
     '''
@@ -90,14 +83,7 @@ def get_features_and_labels(frame):
     # entire set
     from sklearn.model_selection import train_test_split
     X_train, _, y_train, _ = train_test_split(X, y, test_size=0.5)
-    X_test, y_test = X, y
-    
-    # If values are missing we could impute them from the training data
-    #from sklearn.preprocessing import Imputer
-    #imputer = Imputer(strategy='mean')
-    #imputer.fit(X_train)
-    #X_train = imputer.transform(X_train)
-    #X_test = imputer.transform(X_test)
+    X_test, y_test = X, y   
     
     # Normalize the attribute values to mean=0 and variance=1
     from sklearn.preprocessing import StandardScaler
@@ -116,7 +102,6 @@ def get_features_and_labels(frame):
     return X_train, X_test, y_train, y_test
 
 # =====================================================================
-
 
 def evaluate_learner(X_train, X_test, y_train, y_test):
     '''
@@ -149,7 +134,6 @@ def evaluate_learner(X_train, X_test, y_train, y_test):
     yield 'Polynomial Model ($R^2={:.3f}$)'.format(r_2), y_test, y_pred
 
 # =====================================================================
-
 
 def plot(results):
     '''
@@ -200,28 +184,27 @@ def plot(results):
 
     # ==================================
     # Display the plot in interactive UI
-    plt.show()
-
-    # To save the plot to an image file, use savefig()
-    #plt.savefig('plot.png')
-
-    # Open the image file with the default image viewer
-    #import subprocess
-    #subprocess.Popen('plot.png', shell=True)
-
-    # To save the plot to an image in memory, use BytesIO and savefig()
-    # This can then be written to any stream-like object, such as a
-    # file or HTTP response.
-    #from io import BytesIO
-    #img_stream = BytesIO()
-    #plt.savefig(img_stream, fmt='png')
-    #img_bytes = img_stream.getvalue()
-    #print('Image is {} bytes - {!r}'.format(len(img_bytes), img_bytes[:8] + b'...'))
+    plt.show()  
 
     # Closing the figure allows matplotlib to release the memory used.
     plt.close()
 
 # =====================================================================
+def multi_regression(df):
+
+    X = df[['QTD_CHOC','VAR_1','VAR_2']] # 3 variables for the multiple linear regression. 
+    Y = df['PESO_BOMBOM']
+
+    X = sm.add_constant(X) # adding a constant
+
+    model = sm.OLS(Y, X).fit()
+    predictions = model.predict(X) 
+
+    print_model = model.summary()
+    print(print_model)
+
+# =====================================================================
+
 def gui(df, X_train, X_test, y_train, y_test):
     
     # with sklearn
@@ -329,6 +312,10 @@ if __name__ == '__main__':
     # Display the results
     print("Plotting the results \n")
     plot(results)
+
+    # Multi Regression
+    print("Multi Regression \n")
+    print(multi_regression(newframe))
 
     #GUI for prediction
     print("Opening GUI")

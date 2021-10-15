@@ -23,9 +23,9 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from sklearn.preprocessing import StandardScaler
 
 #Home
-URL = "H:\\Users\\admin\\Projects\\Desafios\\DesafioIBM\\Arquivos\\registros-prod.xlsx"
+#URL = "H:\\Users\\admin\\Projects\\Desafios\\DesafioIBM\\Arquivos\\registros-prod.xlsx"
 #Office
-#URL = "C:\\Users\\Andre.Vieira\\Downloads\\Teste\\registros-prod.xlsx"
+URL = "C:\\Users\\Andre.Vieira\\Downloads\\Teste\\registros-prod.xlsx"
 try:
     # [OPTIONAL] Seaborn makes plots nicer
     import seaborn

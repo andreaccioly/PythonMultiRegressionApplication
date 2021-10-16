@@ -10,7 +10,6 @@
 
 
 import matplotlib
-from pandas import read_table
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
